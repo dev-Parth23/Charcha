@@ -1,0 +1,29 @@
+{
+  "name": "chitchat",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/dev-Parth23/ChitChat#readme",
+  "bugs": {
+    "url": "https://github.com/dev-Parth23/ChitChat/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-Parth23/ChitChat.git"
+  },
+  "scripts": {
+    "start": "nodemon backend/server.js"
+  },
+  "license": "ISC",
+  "author": "Parth Singhal",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "mongoose": "^9.1.1",
+    "nodemon": "^3.1.11"
+  }
+}
