@@ -1,31 +1,74 @@
-const asyncHandler = require("express-async-handler");
-const User = require("../models/userModel");
-const registerUser = async (req, res) => {
-  const { name, email, password, pic } = req.body;
-  if (!name || !email || !password) {
-    res.status(400);
-    throw new Error("Please Enter all the fields");
-  }
+import User from "../models/userModel.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/generateToken.js";
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    res.status(400);
-    throw new Error("User already Exists");
-  }
+/* REGISTER */
+export const registerUser = async (req, res) => {
+  console.log("REGISTER BODY:", req.body); // 👈 ADD THIS LINE
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    pic,
-  });
+  try {
+    const { name, email, password } = req.body;
 
-  if(user) {
-    res.status(201).json({
-      _id : user._id,
-      name : user.name,
-      email : user.email,
-      pic : user.pic,
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
     })
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+/* LOGIN */
+export const authUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user || !(await user.matchPassword(password)))
+    return res.status(401).json({ message: "Invalid email or password" });
+
+  const accessToken = generateAccessToken(user._id);
+  const refreshToken = generateRefreshToken(user._id);
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  res
+    .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+    })
+    .json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      pic: user.pic,
+      accessToken,
+    });
+};
+export const refreshAccessToken = async (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const accessToken = generateAccessToken(decoded.id);
+    res.json({ accessToken });
+  } catch {
+    res.sendStatus(403);
   }
 };

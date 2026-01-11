@@ -1,23 +1,42 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const submitHandler = async () => {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
     setLoading(true);
+
     if (!email || !password) {
-      toast({
-        title: "Please Fill all the Feilds",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
       setLoading(false);
       return;
     }
+
+    try {
+      const res = await fetch("/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("userInfo", JSON.stringify(data));
+
+      setLoading(false);
+      navigate("/");
+    } catch (error) {
+      setLoading(false);
+    }
   };
+
   return (
     <section className="relative w-screen h-screen bg-[#141414] px-4 py-6 sm:px-10 sm:py-10 lg:p-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-transparent to-black/80 z-0" />
@@ -61,33 +80,15 @@ const Login = () => {
               </p>
             </div>
 
-            <form className="flex flex-col gap-7 sm:gap-8">
-              <div className="relative">
-                <input
-                  type="text"
-                  required
-                  className="
-                    peer w-full bg-transparent
-                    border-b border-black/30
-                    px-1 py-3 text-black text-sm
-                    outline-none
-                    focus:border-black
-                    transition
-                  "
-                />
-                <label
-                  className="absolute left-1 top-3 text-black/60 text-sm
-                  peer-focus:-top-2 peer-focus:text-xs peer-focus:text-black
-                  peer-valid:-top-2 peer-valid:text-xs transition-all"
-                >
-                  Name
-                </label>
-              </div>
-
+            <form
+              onSubmit={submitHandler}
+              className="flex flex-col gap-7 sm:gap-8"
+            >
               <div className="relative">
                 <input
                   type="email"
                   required
+                  onChange={(e) => setEmail(e.target.value)}
                   className="
                     peer w-full bg-transparent
                     border-b border-black/30
@@ -113,6 +114,7 @@ const Login = () => {
                   minLength={8}
                   maxLength={16}
                   required
+                  onChange={(e) => setPassword(e.target.value)}
                   className="
                     peer w-full bg-transparent
                     border-b border-black/30
@@ -139,14 +141,18 @@ const Login = () => {
                   transition-all
                   shadow-[0_10px_30px_rgba(0,0,0,0.45)]
                 "
-                onClick={submitHandler}
+                type="submit"
               >
-                Continue
+                {loading ? "Processing..." : "Continue"}
               </button>
             </form>
             <p className="mt-6 sm:mt-8 text-sm text-black/60 text-center">
               Don’t have an account?{" "}
-              <button className="text-black font-medium hover:underline underline-offset-4">
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="text-black font-medium hover:underline underline-offset-4"
+              >
                 Sign up
               </button>
             </p>
