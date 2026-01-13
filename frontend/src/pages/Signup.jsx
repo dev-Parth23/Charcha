@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,7 +16,6 @@ const Signup = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
-    navigate("/login")
 
     if (!name || !email || !password || !confirmPassword) {
       setLoading(false);
@@ -22,27 +23,35 @@ const Signup = () => {
     }
 
     if (password !== confirmPassword) {
+      setModalMessage("Passwords do not match");
+      setShowModal(true);
       setLoading(false);
       return;
     }
 
     try {
+      console.log("entered try cactch");
       const res = await fetch("/api/user", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
+      console.log("reachred here");
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Signup failed");
+      }
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      console.log("Signup success:", data);
 
       setLoading(false);
       navigate("/login");
     } catch (error) {
-      const msg = error.message || "Signup failed";
-      console.error("SIGNUP ERROR:", msg);
+      console.error("Catch Error:", error.message);
+      setModalMessage(error.message);
+      setShowModal(true);
       setLoading(false);
     }
   };
@@ -198,6 +207,24 @@ const Signup = () => {
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl text-center">
+            <h3 className="text-lg font-semibold text-black mb-2">
+              Signup Failed
+            </h3>
+
+            <p className="text-sm text-black/70 mb-6">{modalMessage}</p>
+
+            <button
+              onClick={() => setShowModal(false)}
+              className="w-full bg-black text-white py-2 rounded-xl text-sm hover:bg-black/90 transition"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

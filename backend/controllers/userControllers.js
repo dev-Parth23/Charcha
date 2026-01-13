@@ -6,7 +6,7 @@ import {
 
 /* REGISTER */
 export const registerUser = async (req, res) => {
-  console.log("REGISTER BODY:", req.body); // 👈 ADD THIS LINE
+  console.log("REGISTER BODY:", req.body);
 
   try {
     const { name, email, password } = req.body;
@@ -24,14 +24,22 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password,
-    })
+    });
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        message: "Registration successful",
+      });
+    } else {
+      res.status(400).json({ message: "Invalid user data" });
+    }
   } catch (error) {
     console.error("REGISTER ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 /* LOGIN */
 export const authUser = async (req, res) => {
