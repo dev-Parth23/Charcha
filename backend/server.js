@@ -11,12 +11,14 @@ app.use(cookieParser());
 
 
 import userRoutes from "./routes/userRoutes.js";
-import chats from "./data/data.js";
+import chatRoutes from "./routes/chatRoutes.js";
+// import chats from "./data/data.js";
 
 app.get("/", function (req, res) {
   res.send("index");
 });
 app.use('/api/user', userRoutes);
+app.use('/api/chat', chatRoutes);
 
 
 const PORT = Number(process.env.PORT) || 5000;
