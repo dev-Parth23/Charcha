@@ -31,12 +31,13 @@ const Signup = () => {
 
     try {
       console.log("entered try cactch");
-      const res = await fetch("/api/user", {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/user`, 
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-      console.log("reachred here");
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
